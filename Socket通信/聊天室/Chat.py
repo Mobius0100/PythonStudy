@@ -1,9 +1,11 @@
 import socket
 import threading
-from time import ctime, daylight
+from time import ctime
+import time
+from tkinter.constants import S
 
 BUFFSIZ = 1024
-HOST = ''
+HOST = 'localhost'
 PORT = 21567
 ADDR = (HOST, PORT)
 
@@ -22,7 +24,9 @@ class ClientThread(threading.Thread):
         for addr, sock in self.conn_pool.items():
             if addr != self.addr:
                 # sock.send(msg)
-                sock.send(b'[' + bytes(ctime(), 'utf-8') + b'] '+ f'{self.nickname} :'.encode('utf-8') + msg)
+                now_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                sock.send(b'[' + now_time.encode('utf-8') + b']' + f' {self.nickname} :'.encode('utf-8') + msg)
+                # sock.send(b'[' + bytes(ctime(), 'utf-8') + b'] '+ f'{self.nickname} :'.encode('utf-8') + msg)
 
     def exit(self):
         """ 客户端退出 """
@@ -54,15 +58,23 @@ def main():
     pool_lock = threading.Lock()
 
     while True:
-        cli_sock, cli_addr = sock.accept() # 连接套接字
-        print(f'#===========来自{cli_addr}的连接============#')
-        initbuf = cli_sock.recv(BUFFSIZ).decode()
-        if initbuf == 'initNick':
-            nickname = cli_sock.recv(BUFFSIZ).decode()
-        with pool_lock:
-            conn_pool[cli_addr] = cli_sock
-        cli_thread = ClientThread(cli_sock, cli_addr, conn_pool, pool_lock, nickname)
-        cli_thread.start()
+        try:
+            cli_sock, cli_addr = sock.accept() # 连接套接字
+            print(f'#===========来自{cli_addr}的连接============#')
+            
+            nick = cli_sock.recv(BUFFSIZ).decode('utf-8')
+            cli_sock.send(b'Connection successful~', nick.encode('utf-8'))
+
+            with pool_lock:
+                conn_pool[cli_addr] = cli_sock
+            cli_thread = ClientThread(cli_sock, cli_addr, conn_pool, pool_lock, nick)
+            cli_thread.start()
+        except:
+            print('Error')
+            break
+        
+    sock.close()
 
 if __name__ == "__main__":
     main()
+    

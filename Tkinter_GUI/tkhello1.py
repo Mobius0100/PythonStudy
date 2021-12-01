@@ -1,5 +1,12 @@
+from os import link
+from threading import local
+import threading
 import tkinter
-from tkinter.constants import HORIZONTAL, RIGHT, S, X, Y
+import tkinter.messagebox
+import socket
+from tkinter.constants import BOTH, BOTTOM, END, HORIZONTAL, LEFT, LEFT, RIGHT, S, TOP, W, X, Y
+from typing import Text
+
 
 def resize(ev=None):
     lable.config(font=('Courier', scale.get(), 'bold'))
@@ -16,7 +23,7 @@ scale.pack(fill=X, expand=1)
 
 
 textsb = tkinter.Scrollbar(top)
-textsb.pack(side=RIGHT, fill=Y)
+textsb.pack(side=LEFT, fill=Y)
 text = tkinter.Text(top, height=5, width=50, yscrollcommand=textsb, )
 text.pack()
  
