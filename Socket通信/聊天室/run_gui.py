@@ -1,9 +1,10 @@
 import sys
 import socket
 import tkinter.messagebox
-from tkinter.constants import BOTH, END, LEFT, LEFT, RIGHT, S, TOP, W, E, Y
+from tkinter.constants import BOTH, DISABLED, END, LEFT, LEFT, NORMAL, RIGHT, S, TOP, W, E, Y
 import threading
 import tkinter
+
 
 BUFFSIZ = 1024
 
@@ -14,6 +15,8 @@ class ChatWin(object):
         self.root = tkinter.Tk()
         self.root.title('Socket通信 聊天室 客户端V1.0')
         self.root.geometry('500x400')
+        self.root.attributes('-alpha', 0.98) # 设置透明度
+        self.root.protocol('WM_DELETE_WINDOW', self.exit) # 绑定退出按钮事件
 
         self.localhost = tkinter.StringVar(self.root)
         self.portstr = tkinter.IntVar(self.root)
@@ -44,13 +47,15 @@ class ChatWin(object):
         self.msg_frame = tkinter.Frame()
         self.infosb = tkinter.Scrollbar(self.msg_frame)
         self.infolb = tkinter.Label(text='消息记录：')
-        self.clear_msg = tkinter.Button(text='清空消息',command=self.msglog.delete(0, END))
-        self.msglog = tkinter.Text(self.msg_frame, width=70,
-                     height=20, yscrollcommand=self.infosb.set, 
-                    wrap='word') # state=disable 设置text为只读;wrap=word/none/char 指定自动换行
+        self.msglog = tkinter.Text(self.msg_frame,
+                    yscrollcommand=self.infosb.set, 
+                    font=("微软雅黑", 12), width=50,height=10,
+                    wrap='word', state=DISABLED, ) # state=disable 设置text为只读;wrap=word/none/char 指定自动换行
+        # self.clear_msg = tkinter.Button(self.msg_frame, text='清空消息',command=self.clear_msg)
         self.infosb.pack(side=RIGHT, fill=Y)
         self.infolb.pack(anchor=W)
-        self.clear_msg.pack(anchor=E)  # anchor= ? WENS 分别指代东南西北，还有其组合NE 东北
+        # self.clear_msg.pack(side=RIGHT)  # anchor= ? WENS 分别指代东南西北，还有其组合NE 东北
+        
         self.msglog.pack()
         self.msg_frame.pack()
 
@@ -65,7 +70,24 @@ class ChatWin(object):
         self.inputbt.pack(side=LEFT,expand=1)
         self.input_frame.pack()
 
-    
+    def clear_msg(self):
+        self.msglog.delete(1.0, END)
+
+    def exit(self):
+        """ 退出处理 """
+        if tkinter.messagebox.askyesno('提示','确定要退出吗'):
+            self.tcpcli_sock.send(b'#@exit')
+            self.tcpcli_sock.close()
+            self.root.destroy()
+            sys.exit(0)
+
+    def add_one_line(self, msg):
+        """ 往文本框里添加一行消息 """
+        self.msglog.config(state=NORMAL)
+        self.msglog.insert(END, msg+'\n')
+        self.msglog.see(END)
+        self.msglog.config(state=DISABLED)
+
     def connect_host(self):
         """ 连接到主机 """
         if self.nickstr.get() == '':
@@ -86,7 +108,9 @@ class ChatWin(object):
     def send_msg(self, ev=None):
         """ 发送消息 """
         msg = self.input.get()
-        self.msglog.insert(END, f'> {msg} \n')
+        #self.msglog.insert(END, f'> {msg} \n')
+        self.add_one_line(msg)
+
         try:
             self.tcpcli_sock.send(msg.encode('utf-8'))
         except:
@@ -99,16 +123,15 @@ class ChatWin(object):
         """ 接收广播的消息 """
         while True:
             msg = self.tcpcli_sock.recv(BUFFSIZ)
-            self.msglog.insert(END, msg.decode('utf-8')+'\n')
-            self.msglog.see(END)  # 使滚动始终处于底端
-            self.msglog.update()
+            self.add_one_line(msg.decode('utf-8'))
+            # self.msglog.insert(END, msg.decode('utf-8')+'\n')
+            # self.msglog.update()
 
     def start_thread(self):
          """ 开启接收消息线程"""
-
-         t = threading.Thread(target=self.recv_msg, args=())
-         t.setDaemon(True)
-         t.start()
+         self.t = threading.Thread(target=self.recv_msg, args=())
+         self.t.setDaemon(True)
+         self.t.start()
 
 
 def main():
