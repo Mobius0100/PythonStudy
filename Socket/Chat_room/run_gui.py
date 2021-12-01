@@ -1,7 +1,7 @@
 import sys
 import socket
 import tkinter.messagebox
-from tkinter.constants import BOTH, DISABLED, END, LEFT, LEFT, NORMAL, RIGHT, S, TOP, W, E, Y
+from tkinter.constants import BOTH, BOTTOM, DISABLED, END, LEFT, LEFT, NORMAL, RIGHT, S, TOP, W, E, X, Y
 import threading
 import tkinter
 
@@ -45,17 +45,21 @@ class ChatWin(object):
 
         # 定义显示消息框架
         self.msg_frame = tkinter.Frame()
+        self.msg_head_frame = tkinter.Frame()
+
+        self.infolb = tkinter.Label(self.msg_head_frame, text='消息记录：')
+        self.clearbt = tkinter.Button(self.msg_head_frame, text='清空消息',command=self.clear_msg)
+        self.infolb.pack(side=LEFT, fill=X, expand=1)
+        self.clearbt.pack(anchor=E)  # anchor= ? WENS 分别指代东南西北，还有其组合NE 东北
+        self.msg_head_frame.pack()
+
         self.infosb = tkinter.Scrollbar(self.msg_frame)
-        self.infolb = tkinter.Label(text='消息记录：')
         self.msglog = tkinter.Text(self.msg_frame,
                     yscrollcommand=self.infosb.set, 
                     font=("微软雅黑", 12), width=50,height=10,
                     wrap='word', state=DISABLED, ) # state=disable 设置text为只读;wrap=word/none/char 指定自动换行
-        # self.clear_msg = tkinter.Button(self.msg_frame, text='清空消息',command=self.clear_msg)
-        self.infosb.pack(side=RIGHT, fill=Y)
-        self.infolb.pack(anchor=W)
-        # self.clear_msg.pack(side=RIGHT)  # anchor= ? WENS 分别指代东南西北，还有其组合NE 东北
         
+        self.infosb.pack(side=RIGHT, fill=Y)
         self.msglog.pack()
         self.msg_frame.pack()
 
@@ -71,18 +75,20 @@ class ChatWin(object):
         self.input_frame.pack()
 
     def clear_msg(self):
+        self.msglog.config(state=NORMAL)
         self.msglog.delete(1.0, END)
+        self.msglog.config(state=DISABLED)
 
     def exit(self):
         """ 退出处理 """
         if tkinter.messagebox.askyesno('提示','确定要退出吗'):
+            self.root.destroy()
             self.tcpcli_sock.send(b'#@exit')
             self.tcpcli_sock.close()
-            self.root.destroy()
             sys.exit(0)
 
     def add_one_line(self, msg):
-        """ 往文本框里添加一行消息 """
+        
         self.msglog.config(state=NORMAL)
         self.msglog.insert(END, msg+'\n')
         self.msglog.see(END)
