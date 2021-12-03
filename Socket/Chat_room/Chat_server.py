@@ -5,7 +5,7 @@ import time
 from tkinter.constants import S
 
 BUFFSIZ = 1024
-HOST = 'localhost'
+HOST = ''
 PORT = 21567
 ADDR = (HOST, PORT)
 
