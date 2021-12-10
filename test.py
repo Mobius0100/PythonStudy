@@ -1,8 +1,11 @@
-import outsound.sound_mul as outsd
-import os
+import configparser
+import sys
+import yaml
 
-outid = outsd.query_output_id("JieLi AC46")
-file_path = []
-file_path.append(os.getcwd() + "outsound/Alarm.wav") 
-file_path.append(os.getcwd() + "outsound/piku.wav") 
+with open('./config.yaml', 'r') as stream:
+    config = yaml.safe_load(stream)
 
+phone_number = config['phone_number']
+
+for number in phone_number:
+    print(number)
