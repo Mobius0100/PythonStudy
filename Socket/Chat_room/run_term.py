@@ -17,22 +17,6 @@ class RecvThread(threading.Thread):
             msg = self.sock.recv(BUFFSIZ)
             print(msg.decode('utf-8'))
 
-def send_thread(sock):
-    while True:
-        msg = input('>')
-        msg = msg.encode('utf-8')
-        sock.send(msg)
-
-        if msg == b'exit':
-            sock.close()
-            break
-
-def recv_thread(sock):
-    while True:
-        msg = sock.recv(BUFFSIZ)
-        print(msg.decode('utf-8'))  
-
-
 def main(host='localhost', port=21567):
     addr = (host, port)
     tcpcli_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

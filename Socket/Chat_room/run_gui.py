@@ -13,7 +13,7 @@ class ChatWin(object):
     def __init__(self):
         """ 初始化图形界面 """
         self.root = tkinter.Tk()
-        self.root.title('Socket通信 聊天室 客户端V1.0')
+        self.root.title('Socket通信 - 客户端V1.0')
         self.root.geometry('500x400')
         self.root.attributes('-alpha', 0.98) # 设置透明度
         self.root.protocol('WM_DELETE_WINDOW', self.exit) # 绑定退出按钮事件
@@ -114,14 +114,18 @@ class ChatWin(object):
     def send_msg(self, ev=None):
         """ 发送消息 """
         msg = self.input.get()
+        if msg == '':
+            tkinter.messagebox.showwarning('提示','消息不能为空')
+            return
         #self.msglog.insert(END, f'> {msg} \n')
-        self.add_one_line(msg)
 
         try:
             self.tcpcli_sock.send(msg.encode('utf-8'))
         except:
-            tkinter.messagebox.showerror('发送失败!','未连接服务器。')
-        
+            # tkinter.messagebox.showerror('发送失败!','未连接服务器。')
+            self.add_one_line('发送失败，未连接服务器')
+
+        self.add_one_line(msg)
         self.input.delete(0, END)  # 删除文本框内容
         self.input.update()
 
